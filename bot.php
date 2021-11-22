@@ -1,35 +1,30 @@
 <?php
-$API_KEY = '108813923:AAGqGU9EcRDn4t2kDi1GL9HiPKPnUMlgu3U';
-define('API_KEY', $API_KEY);
+$token = '108813923:AAGqGU9EcRDn4t2kDi1GL9HiPKPnUMlgu3U';
+$website = 'https://api.telegram.org/bot'.$token;
 
-function bot($method,$datas=[]){
-$url = "https://api.telegram.org/bot" . API_KEY . "/" . $method;
-$ch  = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $datas);
-$res = curl_exec($ch);
-if (curl_error($ch)) {
-    var_dump(curl_error($ch));
-} else {
-    return json_decode($res);
+$input = file_get_contents('php://input');
+$update = json_decode($input, TRUE);
+
+$chatId = $update['message']['chat']['id'];
+$message = $update['message']['text'];
+
+switch($message) {
+    case '/start':
+        $response = 'Me has iniciado';
+        sendMessage($chatId, $response);
+        break;
+    case '/info':
+        $response = 'Hola! Soy @trecno_bot';
+        sendMessage($chatId, $response);
+        break;
+    default:
+        $response = 'No te he entendido';
+        sendMessage($chatId, $response);
+        break;
 }
-}
 
-$update     = json_decode(file_get_contents('php://input'));
-$message    = $update["message"]
-$text       = $message->text;
-$chat_id    = $message->chat->id;
-$from_id    = $message->from->id;
-$new_member = $message->new_chat_member->id;
-$memberid   = file_get_contents('whitelist.txt'); //put userid in whitelist.txt
-$whitelist  = explode("\n", $memberid);
-
-if ($new_member) {
-    if (!in_array($chat_id, $whitelist)) {
-           bot('kickChatMember',[
-          'chat_id'=>$chat_id,
-          'user_id'=>$message->new_chat_member->id]);
-    }
+function sendMessage($chatId, $response) {
+    $url = $GLOBALS['website'].'/sendMessage?chat_id='.$chatId.'&parse_mode=HTML&text='.urlencode($response);
+    file_get_contents($url);
 }
 ?>
